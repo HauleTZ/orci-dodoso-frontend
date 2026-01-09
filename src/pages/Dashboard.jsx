@@ -12,6 +12,16 @@ import {
   TableContainer,
   TableHead,
   TableRow,
+  TablePagination,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  List,
+  ListItem,
+  ListItemText,
+  Stack,
+  Chip,
   IconButton,
   Button,
   Container,
@@ -30,7 +40,7 @@ import {
   XAxis,
   YAxis,
 } from "recharts";
-import { MoreHoriz, PictureAsPdf, FileDownload, TrendingUp } from "@mui/icons-material";
+import { PictureAsPdf, FileDownload, Visibility, Close } from "@mui/icons-material";
 import { useNavigate } from 'react-router-dom';
 import Swal from 'sweetalert2';
 import jsPDF from "jspdf";
@@ -53,6 +63,10 @@ export default function Dashboard() {
   });
   const [chartData, setChartData] = useState([]);
   const [deptData, setDeptData] = useState([]);
+  const [page, setPage] = useState(0);
+  const [rowsPerPage, setRowsPerPage] = useState(10);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [selectedResponse, setSelectedResponse] = useState(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -95,6 +109,10 @@ export default function Dashboard() {
     fetchData();
   }, [navigate]);
 
+  useEffect(() => {
+    setPage(0);
+  }, [responses.length]);
+
   const processData = (data) => {
     const total = data.length;
     const trained = data.filter(r => r.has_training === 'yes').length;
@@ -123,6 +141,56 @@ export default function Dashboard() {
     });
     const deptArray = Object.keys(deptCounts).map(k => ({ name: k, value: deptCounts[k] }));
     setDeptData(deptArray.slice(0, 7)); // Top 7
+  };
+
+  const formatDate = (value) => {
+    if (!value) return "-";
+    const parsed = new Date(value);
+    if (Number.isNaN(parsed.getTime())) return value;
+    return parsed.toLocaleDateString("en-GB");
+  };
+
+  const formatValue = (value) => {
+    if (value === null || value === undefined || value === "") return "-";
+    if (Array.isArray(value)) return value.length ? value.join(", ") : "-";
+    return value;
+  };
+
+  const formatYesNo = (value) => {
+    if (value === "yes") return "Ndiyo";
+    if (value === "no") return "Hapana";
+    return formatValue(value);
+  };
+
+  const getYesNoChipColor = (value) => {
+    if (value === "yes") return "success";
+    if (value === "no") return "error";
+    return "default";
+  };
+
+  const formatTrainingType = (value) => {
+    if (value === "short") return "Muda Mfupi";
+    if (value === "long") return "Muda Mrefu";
+    return formatValue(value);
+  };
+
+  const handleOpenDetails = (response) => {
+    setSelectedResponse(response);
+    setDetailsOpen(true);
+  };
+
+  const handleCloseDetails = () => {
+    setDetailsOpen(false);
+    setSelectedResponse(null);
+  };
+
+  const handleChangePage = (event, newPage) => {
+    setPage(newPage);
+  };
+
+  const handleChangeRowsPerPage = (event) => {
+    setRowsPerPage(parseInt(event.target.value, 10));
+    setPage(0);
   };
 
   const generatePDF = () => {
@@ -383,22 +451,197 @@ export default function Dashboard() {
                   <TableCell sx={{ color: "white" }}>Jina</TableCell>
                   <TableCell sx={{ color: "white" }}>Idara</TableCell>
                   <TableCell sx={{ color: "white" }}>Ana Mafunzo?</TableCell>
+                  <TableCell sx={{ color: "white" }}>Hatua</TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
-                {responses.slice(0, 10).map((row, index) => (
+                {responses.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage).map((row, index) => (
                   <TableRow key={index} hover>
                     <TableCell>{row.pf_number}</TableCell>
                     <TableCell>{row.full_name}</TableCell>
                     <TableCell>{row.department}</TableCell>
-                    <TableCell>{row.has_training}</TableCell>
+                    <TableCell>{formatYesNo(row.has_training)}</TableCell>
+                    <TableCell>
+                      <Button
+                        variant="outlined"
+                        size="small"
+                        startIcon={<Visibility />}
+                        onClick={() => handleOpenDetails(row)}
+                        sx={{ borderColor: primaryRed, color: primaryRed, "&:hover": { borderColor: "#8B0000", color: "#8B0000" } }}
+                      >
+                        Tazama
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
+            <TablePagination
+              component="div"
+              count={responses.length}
+              page={page}
+              onPageChange={handleChangePage}
+              rowsPerPage={rowsPerPage}
+              onRowsPerPageChange={handleChangeRowsPerPage}
+              rowsPerPageOptions={[5, 10, 25, 50]}
+            />
           </TableContainer>
         </Box>
       </Container>
+
+      <Dialog
+        open={detailsOpen}
+        onClose={handleCloseDetails}
+        maxWidth="md"
+        fullWidth
+        PaperProps={{ sx: { borderRadius: 3 } }}
+      >
+        <DialogTitle sx={{ p: 0 }}>
+          <Box
+            sx={{
+              px: 3,
+              py: 2,
+              bgcolor: primaryRed,
+              color: "white",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "space-between",
+              gap: 2,
+            }}
+          >
+            <Box>
+              <Typography variant="h6" fontWeight="bold">
+                Maelezo ya Mtumishi
+              </Typography>
+              {selectedResponse ? (
+                <Typography variant="body2" sx={{ opacity: 0.9 }}>
+                  {formatValue(selectedResponse.full_name)} • PF {formatValue(selectedResponse.pf_number)}
+                </Typography>
+              ) : null}
+            </Box>
+            <IconButton onClick={handleCloseDetails} sx={{ color: "white" }} aria-label="close">
+              <Close />
+            </IconButton>
+          </Box>
+        </DialogTitle>
+        <DialogContent dividers sx={{ bgcolor: "#fafafa" }}>
+          {selectedResponse ? (
+            <Stack spacing={2}>
+              <Grid container spacing={2}>
+                <Grid item xs={12} md={6}>
+                  <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: "white" }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                      Taarifa Binafsi
+                    </Typography>
+                    <List dense>
+                      <ListItem disableGutters><ListItemText primary="PF Number" secondary={formatValue(selectedResponse.pf_number)} /></ListItem>
+                      <ListItem disableGutters><ListItemText primary="Majina Kamili" secondary={formatValue(selectedResponse.full_name)} /></ListItem>
+                      <ListItem disableGutters><ListItemText primary="Idara" secondary={formatValue(selectedResponse.department)} /></ListItem>
+                      <ListItem disableGutters><ListItemText primary="Kitengo" secondary={formatValue(selectedResponse.section)} /></ListItem>
+                    </List>
+                  </Paper>
+                </Grid>
+                <Grid item xs={12} md={6}>
+                  <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: "white" }}>
+                    <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                      Hali ya Mafunzo
+                    </Typography>
+                    <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", mb: 1 }}>
+                      <Chip
+                        label={`Ana Mafunzo: ${formatYesNo(selectedResponse.has_training)}`}
+                        color={getYesNoChipColor(selectedResponse.has_training)}
+                        size="small"
+                      />
+                      <Chip
+                        label={`Tayari Kupata Mafunzo: ${formatYesNo(selectedResponse.ready_for_training)}`}
+                        color={getYesNoChipColor(selectedResponse.ready_for_training)}
+                        size="small"
+                        variant="outlined"
+                      />
+                    </Stack>
+                    <List dense>
+                      <ListItem disableGutters><ListItemText primary="Tarehe ya Kujaza" secondary={formatDate(selectedResponse.created_at)} /></ListItem>
+                    </List>
+                  </Paper>
+                </Grid>
+              </Grid>
+
+              {selectedResponse.has_training === "yes" ? (
+                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: "white" }}>
+                  <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                    Historia ya Mafunzo
+                  </Typography>
+                  {selectedResponse.training_history && selectedResponse.training_history.length > 0 ? (
+                    <TableContainer sx={{ borderRadius: 2, border: "1px solid #eee" }}>
+                      <Table size="small">
+                        <TableHead>
+                          <TableRow sx={{ bgcolor: "#f3f4f6" }}>
+                            <TableCell sx={{ fontWeight: "bold" }}>Aina</TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }}>Chuo/Taasisi</TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }}>Kuanza</TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }}>Kumaliza</TableCell>
+                            <TableCell sx={{ fontWeight: "bold" }}>Mdhamini</TableCell>
+                          </TableRow>
+                        </TableHead>
+                        <TableBody>
+                          {selectedResponse.training_history.map((item, idx) => (
+                            <TableRow key={idx}>
+                              <TableCell>{formatTrainingType(item.training_type)}</TableCell>
+                              <TableCell>{formatValue(item.institution)}</TableCell>
+                              <TableCell>{formatDate(item.start_date)}</TableCell>
+                              <TableCell>{formatDate(item.end_date)}</TableCell>
+                              <TableCell>{formatValue(item.sponsor)}</TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </TableContainer>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Hakuna taarifa za mafunzo zilizowekwa.
+                    </Typography>
+                  )}
+                </Paper>
+              ) : (
+                <Paper variant="outlined" sx={{ p: 2, borderRadius: 2, bgcolor: "white" }}>
+                  <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                    Sababu za Kutopata Mafunzo
+                  </Typography>
+                  {Array.isArray(selectedResponse.no_training_reasons) && selectedResponse.no_training_reasons.length > 0 ? (
+                    <Stack direction="row" spacing={1} useFlexGap sx={{ flexWrap: "wrap", mb: 2 }}>
+                      {selectedResponse.no_training_reasons.map((reason, idx) => (
+                        <Chip key={`${reason}-${idx}`} label={reason} size="small" />
+                      ))}
+                    </Stack>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+                      Hakuna sababu zilizowekwa.
+                    </Typography>
+                  )}
+
+                  <Typography variant="subtitle2" fontWeight="bold" gutterBottom>
+                    Sababu Nyinginezo
+                  </Typography>
+                  <Box sx={{ p: 1.5, bgcolor: "#f8f9fb", borderRadius: 2, border: "1px dashed #d0d7de" }}>
+                    <Typography variant="body2" color="text.secondary">
+                      {formatValue(selectedResponse.other_reasons)}
+                    </Typography>
+                  </Box>
+                </Paper>
+              )}
+            </Stack>
+          ) : null}
+        </DialogContent>
+        <DialogActions sx={{ px: 3, py: 2 }}>
+          <Button
+            onClick={handleCloseDetails}
+            variant="contained"
+            sx={{ bgcolor: primaryRed, "&:hover": { bgcolor: "#8B0000" } }}
+          >
+            Funga
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Box>
   );
 }
