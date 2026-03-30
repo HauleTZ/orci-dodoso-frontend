@@ -1,6 +1,5 @@
 import React, { useCallback, useEffect, useState } from "react";
 import {
-  Alert,
   Box,
   Button,
   Checkbox,
@@ -32,11 +31,13 @@ import {
   AddCircleOutline,
   ArrowBack,
   ArrowForward,
+  ArrowOutward,
   Badge,
   Business,
   CheckCircle,
   CheckCircleOutline,
   Delete,
+  LockClock,
   Person,
   Save,
   Work,
@@ -1145,48 +1146,323 @@ export default function SurveyForm() {
     const formattedEndAt = formatClosureDate(surveyStatus.endAt);
 
     return (
-      <Box sx={{ bgcolor: "#F4F7F6", minHeight: "calc(100vh - 64px)", pb: 6 }}>
-        <Container maxWidth="sm" sx={{ py: 8 }}>
+      <Box
+        sx={{
+          position: "relative",
+          overflow: "hidden",
+          minHeight: "calc(100vh - 64px)",
+          background:
+            "radial-gradient(circle at top left, rgba(178,34,34,0.12), transparent 28%), radial-gradient(circle at bottom right, rgba(245,158,11,0.12), transparent 24%), linear-gradient(135deg, #f7f3ef 0%, #f1f5f9 48%, #fffaf5 100%)",
+          pb: 8,
+        }}
+      >
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            backgroundImage:
+              "linear-gradient(rgba(178,34,34,0.04) 1px, transparent 1px), linear-gradient(90deg, rgba(178,34,34,0.04) 1px, transparent 1px)",
+            backgroundSize: "32px 32px",
+            maskImage: "linear-gradient(to bottom, rgba(0,0,0,0.55), rgba(0,0,0,0.08))",
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            top: 72,
+            left: { xs: -60, md: 120 },
+            width: 220,
+            height: 220,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(178,34,34,0.22), rgba(178,34,34,0))",
+            filter: "blur(16px)",
+          }}
+        />
+        <Box
+          sx={{
+            position: "absolute",
+            bottom: 56,
+            right: { xs: -80, md: 120 },
+            width: 260,
+            height: 260,
+            borderRadius: "50%",
+            background: "radial-gradient(circle, rgba(245,158,11,0.24), rgba(245,158,11,0))",
+            filter: "blur(20px)",
+          }}
+        />
+        <Container maxWidth="lg" sx={{ py: { xs: 7, md: 11 }, position: "relative", zIndex: 1 }}>
           <Paper
             elevation={0}
             sx={{
-              p: { xs: 3, md: 5 },
-              borderRadius: 4,
-              boxShadow: "0 10px 40px rgba(0,0,0,0.06)",
+              position: "relative",
+              overflow: "hidden",
+              p: { xs: 3, md: 6 },
+              borderRadius: { xs: 4, md: 7 },
+              border: "1px solid rgba(255,255,255,0.65)",
+              background:
+                "linear-gradient(145deg, rgba(255,255,255,0.92) 0%, rgba(255,250,245,0.92) 50%, rgba(255,255,255,0.84) 100%)",
+              boxShadow: "0 30px 80px rgba(140, 23, 23, 0.14)",
+              backdropFilter: "blur(18px)",
             }}
           >
-            <Typography variant="h4" sx={{ color: primaryRed, fontWeight: 800, textAlign: "center", mb: 2 }}>
-              e-Dodoso la Mafunzo
-            </Typography>
-            <Alert severity="warning" sx={{ mb: 3, alignItems: "center" }}>
-              {surveyStatus.message}
-            </Alert>
-            <Typography variant="body1" sx={{ color: "text.secondary", mb: 2 }}>
-              Mfumo wa kujaza dodoso umewekwa kwenye hali ya closed, hivyo vitendo vyote vya kujaza na kutuma
-              vimezimwa.
-            </Typography>
-            {formattedEndAt && (
-              <Typography variant="body2" sx={{ color: "text.secondary", mb: 3 }}>
-                Muda wa mwisho uliowekwa ulikuwa {formattedEndAt}.
-              </Typography>
-            )}
-            <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
-              <Button
-                variant="contained"
-                onClick={() => navigate("/login")}
-                endIcon={<ArrowForward />}
-                sx={{ bgcolor: primaryRed, px: 4, py: 1.5, "&:hover": { bgcolor: "#8B0000" } }}
-              >
-                Ingia kwa Admin
-              </Button>
-              <Button
-                variant="outlined"
-                onClick={() => window.location.reload()}
-                sx={{ borderColor: primaryRed, color: primaryRed, px: 4, py: 1.5 }}
-              >
-                Jaribu tena
-              </Button>
-            </Stack>
+            <Box
+              sx={{
+                position: "absolute",
+                top: -120,
+                right: -80,
+                width: 320,
+                height: 320,
+                borderRadius: "50%",
+                background:
+                  "radial-gradient(circle, rgba(178,34,34,0.16) 0%, rgba(178,34,34,0.05) 38%, rgba(178,34,34,0) 70%)",
+              }}
+            />
+            <Box
+              sx={{
+                position: "absolute",
+                bottom: -120,
+                left: -100,
+                width: 320,
+                height: 320,
+                borderRadius: "50%",
+                background:
+                  "radial-gradient(circle, rgba(245,158,11,0.18) 0%, rgba(245,158,11,0.05) 42%, rgba(245,158,11,0) 72%)",
+              }}
+            />
+            <Grid container spacing={{ xs: 4, md: 6 }} alignItems="center" sx={{ position: "relative", zIndex: 1 }}>
+              <Grid item xs={12} md={7}>
+                <Chip
+                  label="Taarifa Muhimu"
+                  sx={{
+                    mb: 2.5,
+                    bgcolor: "rgba(178,34,34,0.08)",
+                    color: primaryRed,
+                    fontWeight: 800,
+                    letterSpacing: 0.8,
+                    textTransform: "uppercase",
+                  }}
+                />
+                <Typography
+                  variant="h2"
+                  sx={{
+                    color: primaryRed,
+                    fontWeight: 900,
+                    lineHeight: 1.02,
+                    letterSpacing: -1.2,
+                    fontSize: { xs: "2.25rem", md: "3.6rem" },
+                    mb: 2,
+                  }}
+                >
+                  Dirisha la Kujaza
+                  <Box component="span" sx={{ display: "block", color: "#7f1d1d" }}>
+                    Limefungwa
+                  </Box>
+                </Typography>
+                <Typography
+                  variant="h6"
+                  sx={{
+                    color: "text.primary",
+                    fontWeight: 600,
+                    lineHeight: 1.6,
+                    maxWidth: 620,
+                    mb: 3,
+                  }}
+                >
+                  {surveyStatus.message}
+                </Typography>
+
+                <Box
+                  sx={{
+                    display: "grid",
+                    gap: 2,
+                    mb: 4,
+                  }}
+                >
+                  {formattedEndAt && (
+                    <Paper
+                      elevation={0}
+                      sx={{
+                        p: 2.2,
+                        borderRadius: 3,
+                        bgcolor: "rgba(255,255,255,0.66)",
+                        border: "1px solid rgba(178,34,34,0.12)",
+                      }}
+                    >
+                      <Typography variant="overline" sx={{ color: primaryRed, fontWeight: 800 }}>
+                        Muda wa mwisho
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: "text.primary", fontWeight: 700 }}>
+                        {formattedEndAt}
+                      </Typography>
+                    </Paper>
+                  )}
+
+                  <Paper
+                    elevation={0}
+                    sx={{
+                      p: 2.2,
+                      borderRadius: 3,
+                      bgcolor: "rgba(127,29,29,0.04)",
+                      border: "1px solid rgba(127,29,29,0.08)",
+                    }}
+                  >
+                    <Typography variant="body2" sx={{ color: "text.secondary", lineHeight: 1.8 }}>
+                      Kwa ufikiaji wa mfumo wa ripoti na uchambuzi, tumia kitufe hapa chini kuendelea kwenye ukurasa
+                      wa kuingia.
+                    </Typography>
+                  </Paper>
+                </Box>
+
+                <Stack direction={{ xs: "column", sm: "row" }} spacing={2}>
+                  <Button
+                    variant="contained"
+                    onClick={() => navigate("/login")}
+                    endIcon={<ArrowOutward />}
+                    sx={{
+                      bgcolor: primaryRed,
+                      px: 4.2,
+                      py: 1.6,
+                      borderRadius: 3,
+                      fontWeight: 800,
+                      boxShadow: "0 14px 30px rgba(178,34,34,0.22)",
+                      "&:hover": { bgcolor: "#8B0000", boxShadow: "0 18px 34px rgba(139,0,0,0.28)" },
+                    }}
+                  >
+                    Ingia Kwenye Mfumo
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    onClick={() => window.location.reload()}
+                    sx={{
+                      borderColor: "rgba(178,34,34,0.45)",
+                      color: primaryRed,
+                      px: 4,
+                      py: 1.6,
+                      borderRadius: 3,
+                      fontWeight: 700,
+                      bgcolor: "rgba(255,255,255,0.55)",
+                    }}
+                  >
+                    Jaribu Tena
+                  </Button>
+                </Stack>
+              </Grid>
+
+              <Grid item xs={12} md={5}>
+                <Box
+                  sx={{
+                    position: "relative",
+                    minHeight: { xs: 280, md: 430 },
+                    borderRadius: 5,
+                    overflow: "hidden",
+                    background:
+                      "linear-gradient(160deg, rgba(127,29,29,0.96) 0%, rgba(178,34,34,0.92) 44%, rgba(245,158,11,0.86) 100%)",
+                    boxShadow: "inset 0 1px 0 rgba(255,255,255,0.2)",
+                  }}
+                >
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      inset: 0,
+                      background:
+                        "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+                      backgroundSize: "24px 24px",
+                      opacity: 0.55,
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      top: 24,
+                      right: 24,
+                      width: 110,
+                      height: 110,
+                      borderRadius: "50%",
+                      border: "1px solid rgba(255,255,255,0.18)",
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: "absolute",
+                      bottom: -22,
+                      left: -22,
+                      width: 180,
+                      height: 180,
+                      borderRadius: "50%",
+                      bgcolor: "rgba(255,255,255,0.08)",
+                    }}
+                  />
+                  <Box
+                    sx={{
+                      position: "relative",
+                      zIndex: 1,
+                      height: "100%",
+                      p: { xs: 3, md: 4 },
+                      display: "flex",
+                      flexDirection: "column",
+                      justifyContent: "space-between",
+                      color: "white",
+                    }}
+                  >
+                    <Box>
+                      <Box
+                        sx={{
+                          width: 72,
+                          height: 72,
+                          borderRadius: 3,
+                          display: "grid",
+                          placeItems: "center",
+                          bgcolor: "rgba(255,255,255,0.12)",
+                          backdropFilter: "blur(6px)",
+                          mb: 3,
+                        }}
+                      >
+                        <LockClock sx={{ fontSize: 40 }} />
+                      </Box>
+                      <Typography
+                        variant="overline"
+                        sx={{ color: "rgba(255,255,255,0.78)", letterSpacing: 1.6, fontWeight: 700 }}
+                      >
+                        ORCI E-DODOSO
+                      </Typography>
+                      <Typography
+                        variant="h4"
+                        sx={{
+                          mt: 1,
+                          mb: 2,
+                          fontWeight: 900,
+                          lineHeight: 1.1,
+                          fontSize: { xs: "1.8rem", md: "2.35rem" },
+                        }}
+                      >
+                        Taarifa za ukusanyaji zimehifadhiwa kwa sasa.
+                      </Typography>
+                      <Typography variant="body1" sx={{ color: "rgba(255,255,255,0.84)", lineHeight: 1.8 }}>
+                        Endelea kwenye ukurasa wa kuingia ili kufikia dashibodi na huduma nyingine zinazohusiana na
+                        mfumo.
+                      </Typography>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        mt: 4,
+                        p: 2,
+                        borderRadius: 3,
+                        bgcolor: "rgba(255,255,255,0.12)",
+                        backdropFilter: "blur(8px)",
+                      }}
+                    >
+                      <Typography variant="caption" sx={{ color: "rgba(255,255,255,0.72)", display: "block", mb: 0.5 }}>
+                        Hali ya sasa
+                      </Typography>
+                      <Typography variant="h6" sx={{ fontWeight: 800 }}>
+                        Survey closed
+                      </Typography>
+                    </Box>
+                  </Box>
+                </Box>
+              </Grid>
+            </Grid>
           </Paper>
         </Container>
       </Box>
