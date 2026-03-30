@@ -1,0 +1,76 @@
+name: Build And Deploy Frontend
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-frontend
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  deploy:
+    runs-on:
+      - self-hosted
+      - linux
+    env:
+      DEPLOY_COMPOSE_FILE: /home/orci/orci-dodoso-deploy/docker-compose.yml
+      SERVICE_NAME: frontend
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Validate deployment configuration
+        run: |
+          set -euo pipefail
+          if [ -z "${DEPLOY_COMPOSE_FILE}" ]; then
+            echo "Repository variable DEPLOY_COMPOSE_FILE is required."
+            exit 1
+          fi
+          if [ ! -f "${DEPLOY_COMPOSE_FILE}" ]; then
+            echo "Compose file not found at ${DEPLOY_COMPOSE_FILE}."
+            exit 1
+          fi
+
+      - name: Compute image tags
+        id: image
+        run: |
+          set -euo pipefail
+          owner="$(printf '%s' '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')"
+          repo="$(printf '%s' '${{ github.event.repository.name }}' | tr '[:upper:]' '[:lower:]')"
+          sha_tag="$(printf '%s' '${{ github.sha }}' | cut -c1-7)"
+          echo "name=ghcr.io/${owner}/${repo}" >> "$GITHUB_OUTPUT"
+          echo "sha_tag=${sha_tag}" >> "$GITHUB_OUTPUT"
+
+      - name: Login to GHCR
+        run: echo "${{ github.token }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+
+      - name: Build image
+        run: |
+          set -euo pipefail
+          docker build \
+            -t "${{ steps.image.outputs.name }}:main" \
+            -t "${{ steps.image.outputs.name }}:${{ steps.image.outputs.sha_tag }}" \
+            .
+
+      - name: Push image
+        run: |
+          set -euo pipefail
+          docker push "${{ steps.image.outputs.name }}:main"
+          docker push "${{ steps.image.outputs.name }}:${{ steps.image.outputs.sha_tag }}"
+
+      - name: Deploy frontend
+        run: |
+          set -euo pipefail
+          docker-compose -f "${DEPLOY_COMPOSE_FILE}" pull "${SERVICE_NAME}"
+          docker-compose -f "${DEPLOY_COMPOSE_FILE}" up -d "${SERVICE_NAME}"
+          docker-compose -f "${DEPLOY_COMPOSE_FILE}" ps
+
+      - name: Cleanup dangling images
+        run: docker image prune -f

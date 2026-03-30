@@ -68,3 +68,18 @@ This section has moved here: [https://facebook.github.io/create-react-app/docs/d
 ### `npm run build` fails to minify
 
 This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+
+## CI/CD
+
+This repository includes a GitHub Actions workflow for a LAN-only VPS deployment model:
+
+- Build Docker image on push to `main`
+- Push image to GHCR
+- Deploy through a GitHub self-hosted runner running inside your LAN
+
+Required GitHub repository variable:
+
+- `DEPLOY_COMPOSE_FILE`
+  - Example: `/srv/orci/orci-dodoso/docker-compose.yml`
+
+The self-hosted runner works without public inbound access because it connects out to GitHub and performs deployment locally on the VPS.
