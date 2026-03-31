@@ -20,7 +20,7 @@ jobs:
       - self-hosted
       - linux
     env:
-      DEPLOY_ENV_FILE: /home/orci/orci-dodoso-deploy/.env
+      DEPLOY_ENV_FILE: /home/orci/orci-dodoso/.env
       FRONTEND_CONTAINER_NAME: orci-dodoso_frontend_1
       FRONTEND_CONTAINER_MATCH: orci-dodoso_frontend
       PRODUCTION_NETWORK_NAME: orci-dodoso_default
