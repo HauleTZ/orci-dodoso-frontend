@@ -75,11 +75,12 @@ This repository includes a GitHub Actions workflow for a LAN-only VPS deployment
 
 - Build Docker image on push to `main`
 - Push image to GHCR
-- Deploy through a GitHub self-hosted runner running inside your LAN
+- Deploy through a GitHub self-hosted runner running inside your LAN onto the existing production Docker stack
 
-Required GitHub repository variable:
+The frontend workflow now:
 
-- `DEPLOY_COMPOSE_FILE`
-  - Example: `/srv/orci/orci-dodoso/docker-compose.yml`
+- Replaces only the production frontend container
+- Reuses the existing production Docker network
+- Reuses the shared Django static volume used by the live stack
 
 The self-hosted runner works without public inbound access because it connects out to GitHub and performs deployment locally on the VPS.
