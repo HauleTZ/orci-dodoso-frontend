@@ -22,10 +22,10 @@ jobs:
     env:
       DEPLOY_COMPOSE_FILE: /home/orci/orci-dodoso-deploy/docker-compose.yml
       SERVICE_NAME: frontend
-      FRONTEND_CONTAINER_NAME: orci-dodoso_frontend_1
-      LEGACY_FRONTEND_CONTAINER_NAME: orci-dodoso-deploy_frontend_1
-      FRONTEND_NETWORK_NAME: orci-dodoso_default
-      DJANGO_STATIC_VOLUME_NAME: orci-dodoso_static_volume
+      FRONTEND_CONTAINER_NAME: orci-dodoso-deploy_frontend_1
+      LEGACY_FRONTEND_CONTAINER_NAME: orci-dodoso_frontend_1
+      FRONTEND_NETWORK_NAME: orci-dodoso-deploy_default
+      DJANGO_STATIC_VOLUME_NAME: orci-dodoso-deploy_static_volume
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -80,6 +80,7 @@ jobs:
             --name "${FRONTEND_CONTAINER_NAME}" \
             --restart always \
             --network "${FRONTEND_NETWORK_NAME}" \
+            --network-alias backend \
             -p 80:80 \
             -v "${DJANGO_STATIC_VOLUME_NAME}:/app/static_collected" \
             "${{ steps.image.outputs.name }}:main"
