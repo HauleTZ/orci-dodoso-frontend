@@ -20,12 +20,11 @@ jobs:
       - self-hosted
       - linux
     env:
-      DEPLOY_COMPOSE_FILE: /home/orci/orci-dodoso-deploy/docker-compose.yml
-      SERVICE_NAME: frontend
-      FRONTEND_CONTAINER_NAME: orci-dodoso-deploy_frontend_1
-      LEGACY_FRONTEND_CONTAINER_NAME: orci-dodoso_frontend_1
-      FRONTEND_NETWORK_NAME: orci-dodoso-deploy_default
-      DJANGO_STATIC_VOLUME_NAME: orci-dodoso-deploy_static_volume
+      DEPLOY_ENV_FILE: /home/orci/orci-dodoso-deploy/.env
+      FRONTEND_CONTAINER_NAME: orci-dodoso_frontend_1
+      FRONTEND_CONTAINER_MATCH: orci-dodoso_frontend
+      PRODUCTION_NETWORK_NAME: orci-dodoso_default
+      DJANGO_STATIC_VOLUME_NAME: orci-dodoso_static_volume
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -33,14 +32,16 @@ jobs:
       - name: Validate deployment configuration
         run: |
           set -euo pipefail
-          if [ -z "${DEPLOY_COMPOSE_FILE}" ]; then
-            echo "Repository variable DEPLOY_COMPOSE_FILE is required."
+          if [ -z "${DEPLOY_ENV_FILE}" ]; then
+            echo "DEPLOY_ENV_FILE is required."
             exit 1
           fi
-          if [ ! -f "${DEPLOY_COMPOSE_FILE}" ]; then
-            echo "Compose file not found at ${DEPLOY_COMPOSE_FILE}."
+          if [ ! -f "${DEPLOY_ENV_FILE}" ]; then
+            echo "Deployment env file not found at ${DEPLOY_ENV_FILE}."
             exit 1
           fi
+          docker network inspect "${PRODUCTION_NETWORK_NAME}" >/dev/null
+          docker volume inspect "${DJANGO_STATIC_VOLUME_NAME}" >/dev/null
 
       - name: Compute image tags
         id: image
@@ -73,17 +74,22 @@ jobs:
         run: |
           set -euo pipefail
           docker pull "${{ steps.image.outputs.name }}:main"
-          docker network inspect "${FRONTEND_NETWORK_NAME}" >/dev/null
-          docker volume inspect "${DJANGO_STATIC_VOLUME_NAME}" >/dev/null
-          docker rm -f "${FRONTEND_CONTAINER_NAME}" "${LEGACY_FRONTEND_CONTAINER_NAME}" 2>/dev/null || true
+
+          existing_containers="$(docker ps -a --format '{{.Names}}' | grep "${FRONTEND_CONTAINER_MATCH}" || true)"
+          if [ -n "${existing_containers}" ]; then
+            printf '%s\n' "${existing_containers}" | while IFS= read -r container_name; do
+              docker rm -f "${container_name}"
+            done
+          fi
+
           docker run -d \
             --name "${FRONTEND_CONTAINER_NAME}" \
             --restart always \
-            --network "${FRONTEND_NETWORK_NAME}" \
-            --network-alias backend \
+            --network "${PRODUCTION_NETWORK_NAME}" \
             -p 80:80 \
             -v "${DJANGO_STATIC_VOLUME_NAME}:/app/static_collected" \
             "${{ steps.image.outputs.name }}:main"
+
           docker ps --filter "name=${FRONTEND_CONTAINER_NAME}"
 
       - name: Cleanup dangling images
