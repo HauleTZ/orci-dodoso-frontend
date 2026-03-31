@@ -22,6 +22,10 @@ jobs:
     env:
       DEPLOY_COMPOSE_FILE: /home/orci/orci-dodoso-deploy/docker-compose.yml
       SERVICE_NAME: frontend
+      FRONTEND_CONTAINER_NAME: orci-dodoso_frontend_1
+      LEGACY_FRONTEND_CONTAINER_NAME: orci-dodoso-deploy_frontend_1
+      FRONTEND_NETWORK_NAME: orci-dodoso_default
+      DJANGO_STATIC_VOLUME_NAME: orci-dodoso_static_volume
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -68,9 +72,18 @@ jobs:
       - name: Deploy frontend
         run: |
           set -euo pipefail
-          docker-compose -f "${DEPLOY_COMPOSE_FILE}" pull "${SERVICE_NAME}"
-          docker-compose -f "${DEPLOY_COMPOSE_FILE}" up -d "${SERVICE_NAME}"
-          docker-compose -f "${DEPLOY_COMPOSE_FILE}" ps
+          docker pull "${{ steps.image.outputs.name }}:main"
+          docker network inspect "${FRONTEND_NETWORK_NAME}" >/dev/null
+          docker volume inspect "${DJANGO_STATIC_VOLUME_NAME}" >/dev/null
+          docker rm -f "${FRONTEND_CONTAINER_NAME}" "${LEGACY_FRONTEND_CONTAINER_NAME}" 2>/dev/null || true
+          docker run -d \
+            --name "${FRONTEND_CONTAINER_NAME}" \
+            --restart always \
+            --network "${FRONTEND_NETWORK_NAME}" \
+            -p 80:80 \
+            -v "${DJANGO_STATIC_VOLUME_NAME}:/app/static_collected" \
+            "${{ steps.image.outputs.name }}:main"
+          docker ps --filter "name=${FRONTEND_CONTAINER_NAME}"
 
       - name: Cleanup dangling images
         run: docker image prune -f
